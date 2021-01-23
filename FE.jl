@@ -1,10 +1,13 @@
+using Plots
+popdisplay()
 module FEM
 
 #定数定義
-p = 0
-ε = 1.0
-mode = "EH"
-β = 1.0
+p = 0 # p:TE,TMモードの場合はp=0となる
+ref_ind = 1.5 # ガラスの屈折率
+ε = ref_ind^2　# 比誘電率＝屈折率^2
+mode = "TE" # TEモードとする(p=0ならTEモードもTMモードも同じ形になる)　 
+β = 0.5 # 
 
 function cal_l(p, mode)
     if p == 0
@@ -169,21 +172,24 @@ using .FEM
 using LinearAlgebra
 
 M = 100                                                             # 分割数
-L = 10.0                                                            # rの最大値
+L = 90                                                            # rの最大値
 r = collect(range(0,L,length=M))　                                  # r軸上の各elementの座標を格納した1次元配列
 
 ele = All_element(r) # , p, mode, ε, β)
-make_matrix_KM(ele)
-#All_.All_ele
+K, M = make_matrix_KM(ele)
 
-println("FINISH")
+k0, vec = eigen(K, M)
+#k0 = sqrt(k0.values)
+
+plt = plot(r, vec[:,1])
+plot(plt)
+#println(vec[:,1])
+
 
 # seg = All_element.seg
 # N = All_element.N
-# K, M = FEM.make_matrix_KM(seg, N)
+
 # #println(inv(felements.B)*felements.A)
-# k0 = sqrt(eigen(K, M))
-# println(k0)
 
 # fp = open("eigvalues.dat","w")
 # for i=1:length(F.values)
