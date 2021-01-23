@@ -1,17 +1,44 @@
 module FEM
+
+#定数定義
+p = 0
+ε = 1.0
+mode = "EH"
+β = 1.0
+
+function cal_l(p, mode)
+    if p == 0
+        l = 1
+    elseif p >= 1
+        if mode == "EH"
+            l = p +1
+        elseif mode == "HE"
+            l = p - 1
+        else
+            println("mode is undefined") 
+        end                
+    else
+        println("p is undefined")
+    end
+    return l
+end
+
+l = cal_l(p, mode)
+
+
     export All_element, make_matrix_KM
 
-    abstract type Set_constant end
-    struct constant <: Set_constant 
-        p::Integer  
-        ε::Float64
-        mode::String
-        β::Float16
+    # abstract type Set_constant end
+    # struct constant <: Set_constant 
+    #     p::Integer  
+    #     ε::Float64
+    #     mode::String
+    #     β::Float16
 
-        function constant(p, ε, mode, β)
-            return new(p, ε, mode, β)
-        end
-    end
+    #     function constant(p, ε, mode, β)
+    #         return new(p, ε, mode, β)
+    #     end
+    # end
 
     # function (constant::Type{<::Constan})(p, ε, mode, β)
     #     p = p     
@@ -22,38 +49,18 @@ module FEM
     # end
 
     # 構造体を定義
-    mutable struct All_element <: Set_constant
+    mutable struct All_element
         N::Int64
-        l::Int64
         seg::Array{Array{Float64,1},1}
         K::Array{Float64,2}
         M::Array{Float64,2}
     
         function All_element(x)
             N = length(x)
-            p = constan
-            l = cal_l(p, mode)
             seg = make_segments(x)
             A = zeros(Float64,N, N)
             B = zeros(Float64,N, N)
-            return new(N, l, ε, seg, β)
-        end
-
-        function cal_l(p, mode)
-            if p == 0
-                l = 1
-            elseif p >= 1
-                if mode == "EH"
-                    l = p +1
-                elseif mode == "HE"
-                    l = p - 1
-                else
-                    println("mode is undefined") 
-                end                
-            else
-                println("p is undefined")
-            end
-            return l
+            return new(N, seg)
         end
 
         function make_segments(vec_x)
@@ -67,12 +74,12 @@ module FEM
 
     end
 
-    function make_matrix_KM(self)::All_element
+    function make_matrix_KM(self)
         seg = self.seg
         N = self.N
         K = zeros(Float64,N, N)
         M = zeros(Float64,N, N)
-        for e=1:N
+        for e=1:N-1
             tmp_element = Element(seg[e])
 
             Ke = tmp_element.Ke
@@ -96,8 +103,8 @@ module FEM
     struct Element
         seg::Array{Float64,1}
         len::Float64
-        Ke::Array{Float64,1}
-        Me::Array{Float64,1}
+        Ke::Array{Float64,2}
+        Me::Array{Float64,2}
 
         # 単一要素を記述した構造体
         function Element(seg)
@@ -126,12 +133,12 @@ module FEM
             integrals = cals_integral(seg, len)
             # All_element.lの形ではコンストラクタを呼ぶことはできない。当たり前だったけど。
             # All_elementのコンストラクタをelement構造体で呼ぶには継承する必要がある。
-            return 2π * (integrals[2] + All_element.l * integrals[4] + All_element.β^2 * integrals[1])
+            return 2π * (integrals[2] + l * integrals[4] + β^2 * integrals[1])
         end
     
         function M_element(seg, len)
             integrals = cals_integral(seg, len)
-            return 2π * All_element.ε * integrals[1]
+            return 2π * ε * integrals[1]
         end    
 
         function cals_integral(segments, len)
@@ -164,11 +171,8 @@ using LinearAlgebra
 M = 100                                                             # 分割数
 L = 10.0                                                            # rの最大値
 r = collect(range(0,L,length=M))　                                  # r軸上の各elementの座標を格納した1次元配列
-p = 0
-ε = 1.0
-mode = "EH"
-β = 1.0
-ele = All_element(r, p, mode, ε, β)
+
+ele = All_element(r) # , p, mode, ε, β)
 make_matrix_KM(ele)
 #All_.All_ele
 
