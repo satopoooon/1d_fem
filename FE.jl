@@ -14,7 +14,7 @@ module FEM
     end
 
     # function (constant::Type{<::Constan})(p, ε, mode, β)
-    #     p = p  
+    #     p = p     
     #     ε = ε
     #     mode = mode
     #     β = β
@@ -22,17 +22,16 @@ module FEM
     # end
 
     # 構造体を定義
-    mutable struct All_element
+    mutable struct All_element <: Set_constant
         N::Int64
         l::Int64
-        ε::Float64
         seg::Array{Array{Float64,1},1}
-        β::Float64
         K::Array{Float64,2}
         M::Array{Float64,2}
     
-        function All_element(x, p, mode, ε, β)
+        function All_element(x)
             N = length(x)
+            p = constan
             l = cal_l(p, mode)
             seg = make_segments(x)
             A = zeros(Float64,N, N)
