@@ -1,32 +1,30 @@
-using Plots
-popdisplay()
 module FEM
 
 #定数定義
 p = 0 # p:TE,TMモードの場合はp=0となる
 ref_ind = 1.5 # ガラスの屈折率
 ε = ref_ind^2　# 比誘電率＝屈折率^2
-mode = "TE" # TEモードとする(p=0ならTEモードもTMモードも同じ形になる)　 
+mode = "EH" # TEモードとする(p=0ならTEモードもTMモードも同じ形になる)　 
 β = 0.5 # 
+l = 1
+# function cal_l(p, mode)
+#     if p == 0
+#         l = 1
+#     elseif p >= 1
+#         if mode == "EH"
+#             l = p +1
+#         elseif mode == "HE"
+#             l = p - 1
+#         else
+#             println("mode is undefined") 
+#         end                
+#     else
+#         println("p is undefined")
+#     end
+#     return l
+# end
 
-function cal_l(p, mode)
-    if p == 0
-        l = 1
-    elseif p >= 1
-        if mode == "EH"
-            l = p +1
-        elseif mode == "HE"
-            l = p - 1
-        else
-            println("mode is undefined") 
-        end                
-    else
-        println("p is undefined")
-    end
-    return l
-end
-
-l = cal_l(p, mode)
+# l = cal_l(p, mode)
 
 
     export All_element, make_matrix_KM
@@ -168,6 +166,7 @@ l = cal_l(p, mode)
 
 end
 
+using Plots
 using .FEM
 using LinearAlgebra
 
