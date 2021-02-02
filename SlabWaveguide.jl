@@ -14,52 +14,52 @@ module SlabWaveguide_FEM
 # n1:コア屈折率
 # n2:クラッド屈折率
 # n:自然数
-λ = 1.0
-k0 = 2pi * λ
-a = 5.0
-n1 = 1.49
-n2 = 1.48
-n = 0
+const λ = 1.0
+const k0 = 2pi * λ
+const a = 5.0
+const n1 = 1.49
+const n2 = 1.48
+const n = 0
 
 # 解析解で求めたβ
 #β=9.35820167262037
 
-export All_element, make_matrix_KM
+export All_element, make_matrix_C
 
 # 構造体を定義
 mutable struct All_element
     N::Int64 # nodeの数
     seg::Array{Array{Float64,1},1} # 線要素を格納する配列
-    K::Array{Float64,2} # 全体の剛性行列
-    M::Array{Float64,2} # 全体の質量行列
+end
 
-    function All_element(x)
-        N = length(x)
-        seg = make_segments(x)
-        A = zeros(Float64,N, N)
-        B = zeros(Float64,N, N)
-        return new(N, seg)
-    end
-
-    function make_segments(vec_x)
-        N = length(vec_x)                                           # vec_xの要素数
-        vec_segments = Array{Array{Float64,1},1}(undef,N-1)         # r_i,r_i+1 を配列に格納する．配列数はelementの数(vec_x-1になる)分 
-        for i=1:N-1                                                 
-            vec_segments[i] = [vec_x[i],vec_x[i+1]]                 
-        end
-        return vec_segments
-    end
+# 多重ディスパッチにより,引数の型が「Array{Float64,1}」のときは下記関数が実行される
+function All_element(x::Array{Float64,1})
+    N = length(x)
+    seg = make_segments(x)
+    # 多重ディスパッチにより構造体のAll_elementが実行される
+  
+    return All_element(N, seg)
 
 end
 
-function make_matrix_KM(self)
+function make_segments(vec_x)
+    N = length(vec_x)                                           # vec_xの要素数
+    vec_segments = Array{Array{Float64,1},1}(undef,N-1)         # r_i,r_i+1 を配列に格納する．配列数はelementの数(vec_x-1になる)分 
+    for i=1:N-1                                                 
+        vec_segments[i] = [vec_x[i],vec_x[i+1]]                 
+    end
+    return vec_segments
+end
+
+# All_element構造体のメソッド
+function make_matrix_C(self::All_element)
     seg = self.seg
     N = self.N
     C = zeros(Float64,N, N)
 
     for e=1:N-1
 
-        tmp_element = Element(seg[e], e, N)
+        tmp_element = Element(seg[e])
 
         Ce = tmp_element.Ce
 
@@ -79,8 +79,9 @@ struct Element
     len::Float64
     Ce::Array{Float64,2}
 
-    # 単一要素を記述した構造体
-    function Element(seg, e, N)
+    # コンストラクタ(引数の数が構造体と同じ場合は下記のように書く)
+    # 尚、All_Element構造体のコンストラクタは、多重ディスパッチにより配列を引数とするAll_Element関数を実行して作成したので作り方が異なる．
+    function Element(seg)
         len = calc_length(seg)
         Ce = C_element(len, seg)
         
@@ -91,19 +92,15 @@ struct Element
         edge_n = length(vec_segments) - 1 # エッジ数=ノード数 - 1
         len = zeros(Float64,edge_n)
 
-        # 2次元の有限要素法の場合は下記のコードになる(かも・・・)
-        # for i=1:(edge_n)
-        #     len[i] = vec_segments[i][2]-vec_segments[i][1]
-        # end
-
         len = vec_segments[2]-vec_segments[1]
 
         return len
     end
 
-    # 各nodeでのCeを計算する．計算対象とする構造により異なる
+    # 各nodeでのCeを計算する．
     function C_element(len, vec_segments)
         
+        # 屈折率を座標により変える 
         if -a ≤ vec_segments[1] &&  vec_segments[2] ≤　a  
             n_e = 1.49
         else
@@ -126,49 +123,18 @@ using Plots
 using .SlabWaveguide_FEM
 using LinearAlgebra
 
+# 有限要素法を実施する座標を定義
 x_min = -10
 x_max = 10
 step = 0.1                                                   
 x = collect(x_min:step:x_max)
 
 ele = All_element(x)
-C = make_matrix_KM(ele)
+C = make_matrix_C(ele)
+
+# 固有値及び固有ベクトルを求める
 β, vec = eigen(C)
 
+# 固有値最大のときの固有ベクトルが基本モードでの電解分布となる
 plt = plot(x, vec[:,201])
 plot(plt)
-
-#ve = eigvecs(C)
-#ve = ve[201]
-#β = eigmin(C)
-#β = sqrt(complex(β[1]))
-#println(β)
-
-
-
-
-# for i in 1:length(β)
-#     if β[i] > 0
-#         print(i)
-#         #plt = plot(r, vec[:,i])
-#         #plot(plt)
-#         # β_min = β[i]
-#         # vec_min = vec[i]
-#         break
-#     end
-# end 
-
-# xx = collect(x_min:step:x_max)
-
-
-# # print(β_min)
-# # k0 = k0[1]
-# # k0 = complex(k0)
-# # k0 = sqrt(k0)
-# # #println(β)
-# # println(k0)
-
-# seg = All_element.seg
-# N = All_element.N
-# 17.9600542967557im
-# 17.963023604311534
