@@ -5,7 +5,6 @@
 # x方向に対して構造は不均一
 
 # 1次元有限要素法でTEモードの電界分布を求める
-
 module SlabWaveguide_FEM
 
 # λ:波長
@@ -14,15 +13,12 @@ module SlabWaveguide_FEM
 # n1:コア屈折率
 # n2:クラッド屈折率
 # n:自然数
-const λ = 1.0
-const k0 = 2pi * λ
-const a = 5.0
+const λ = 1*10^-6
+const k0 = 2pi / λ
+const a = 6.0
 const n1 = 1.49
 const n2 = 1.48
 const n = 0
-
-# 解析解で求めたβ
-#β=9.35820167262037
 
 export All_element, make_matrix_C
 
@@ -63,10 +59,10 @@ function make_matrix_C(self::All_element)
 
         Ce = tmp_element.Ce
 
-        C[e, e]     = Ce[1,1]
-        C[e+1, e]   = Ce[2,1]
-        C[e, e+1]   = Ce[1,2]
-        C[e+1, e+1] = Ce[2,2]
+        C[e, e]     = C[e, e] + Ce[1,1]
+        C[e+1, e]   = C[e+1, e] + Ce[2,1]
+        C[e, e+1]   = C[e, e+1] + Ce[1,2]
+        C[e+1, e+1] = C[e+1, e+1] + Ce[2,2]
 
     end
 
@@ -106,10 +102,14 @@ struct Element
         else
             n_e = 1.48
         end
-        
-        c11 = -6/len^2 + n_e^2 * k0
+        #n_e = 0
+        #n_e = 999999999999
+        c11 = -6/len^2 + n_e^2 * k0^2
+        #println(c11)
         c22 = c11
+        #println(c22)
         c12 = 6/len^2
+        #println(C12)
         c21 = c12        
         
         return [c11 c12; c21 c22]
@@ -126,15 +126,44 @@ using LinearAlgebra
 # 有限要素法を実施する座標を定義
 x_min = -10
 x_max = 10
-step = 0.1                                                   
+step = 0.5                                                 
 x = collect(x_min:step:x_max)
 
 ele = All_element(x)
 C = make_matrix_C(ele)
+#println(C)
+# const λ = 1.0
+# const k0 = 2pi * λ
+
+# len = 0.1
+# n_e = 1.49
+# c11 = -6/len^2 + n_e^2 * k0^2
+# c22 = c11
+# c12 = 6/len^2
+# c21 = c12    
+   
+# C = [c11 c12; c21 c22]
 
 # 固有値及び固有ベクトルを求める
 β, vec = eigen(C)
-
+#print(β)
+#print(vec)
 # 固有値最大のときの固有ベクトルが基本モードでの電解分布となる
-plt = plot(x, vec[:,201])
-plot(plt)
+#plt = plot(x, real(vec[:,end]))
+
+#println(vec[:,end])
+#scatter(x, vec[:,end])
+
+
+vec1 = vec[:,end] 
+scatter(x, vec1)
+#print(vec1)
+
+# vec2 = [(if x < 1.0e-10 0 else x end) for x in vec1]
+# println(typeof(vec2[1]))
+
+# open("C:/Users/satoshi/julia/1d_femtest.txt", "a") do f
+#     for i in vec1
+#         write(f, i)
+#     end
+# end

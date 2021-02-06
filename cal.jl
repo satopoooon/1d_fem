@@ -1,9 +1,6 @@
 # 対称3層スラブ構造の導波路の解析解を求める
 # 参考サイト:http://www.ocw.titech.ac.jp/index.php?module=General&action=DownLoad&file=20132228841109-6-0-29.pdf&type=cal&JWC=20132228841109
 
-module AnalyticalSolution
-# TEモードの伝搬定数を求める
-
 const λ = 1.0
 const k0 = 2pi * λ
 const a = 5.0
@@ -11,6 +8,9 @@ const n1 = 1.49
 const n2 = 1.48
 const n = 0
 
+module AnalyticalSolution
+# TEモードの伝搬定数を求める
+using NLsolve
 export cal_TE_mode, nls 
 
 function cal_TE_mode(β, k0, n1, n2, a)
@@ -34,7 +34,6 @@ end
 end
 
 using .AnalyticalSolution
-using NLsolve
 using Plots
 
 # nlsolve計算時の初期値
@@ -45,6 +44,7 @@ using Plots
 if !jud
     error("β is not correct!!!")
 end
+print("β=$β")
 
 κ = sqrt(k0^2*n1^2-β^2)
 γ = sqrt(β^2-k0^2*n2^2)
@@ -72,6 +72,7 @@ end
 
 # 電解分布を計算する範囲
 x_list = collect(-10:0.1:10)
+
 
 # 電解分布を計算
 Ey_list = [Ey(x, a, κ, γ, Ae) for x in x_list]
