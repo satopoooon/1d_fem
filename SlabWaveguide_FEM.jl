@@ -104,10 +104,7 @@ struct Element
         end
 
         len = len
-        #n_e = 0
-        #n_e = 999999999999
         c11 = -6/len^2 + n_e^2 * k0^2
-        #println(c11)
         c22 = c11
         c12 = 6/len^2
         c21 = c12        

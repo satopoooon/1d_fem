@@ -177,10 +177,6 @@ function main_AnalySol()
     n1 = 1.49
     n2 = 1.48
     
-    #using .AnalyticalSolution
-    #using LinearAlgebra
-    #using Plots
-    
     # nlsolve計算時の初期値
     β_ini = 9.8* (k0*n1 - k0*n2)/10 + k0*n2 
 
@@ -230,5 +226,6 @@ end
 x1, AnalySol = main_AnalySol()
 x2, FEMSol = main_FEM()
 
-plot(x2, FEMSol)
-plot!(x1, AnalySol)
+plot(x2, FEMSol, label="FEM")
+plot!(x1, AnalySol, label="AnalySol")
+savefig("solve.png")
