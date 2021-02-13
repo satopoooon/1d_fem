@@ -6,6 +6,7 @@
 
 # 1次元有限要素法でTEモードの電界分布を求める
 module SlabWaveguide_FEM
+using SparseArrays
 
 # λ:波長
 # k0:波数
@@ -51,8 +52,9 @@ end
 function make_matrix_C(self::All_element)
     seg = self.seg
     N = self.N
-    C = zeros(Float64,N, N)
-
+    #C = zeros(Float64,N, N)
+    C = spzeros(Float64, N, N)
+    
     for e=1:N-1
 
         tmp_element = Element(seg[e])
@@ -117,24 +119,28 @@ end
 end
 
 using .SlabWaveguide_FEM
-using Plots
+#using Plots
 using LinearAlgebra
+using Arpack
 function main()
 # 有限要素法を実施する座標を定義
-    x_min = -20
-    x_max = 20
-    step = 0.1                                                 
-    x = collect(x_min:step:x_max)
-
-    ele = All_element(x)
-    C = make_matrix_C(ele)
-
-    C = C[2:end-1,2:end-1]
-
-    # 固有値及び固有ベクトルを求める
-    β, vec = eigen(C)
-    x = x[2:end-1]
-    plot(x, vec[:,end])
 end
 
-#main()
+x_min = -20
+x_max = 20
+step = 0.1                                                 
+x = collect(x_min:step:x_max)
+
+ele = All_element(x)
+C = make_matrix_C(ele)
+
+#C = C[2:end-1,2:end-1]
+
+# 固有値及び固有ベクトルを求める
+#β, vec = eigen(C)
+β, vec = eigs(C)
+#x = x[2:end-1]
+#plot(x, vec[:,end])
+#end
+
+#@time main()
